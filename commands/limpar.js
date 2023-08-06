@@ -1,16 +1,19 @@
 const Discord = require("discord.js")
-const { JsonDatabase, } = require("wio.db");
-const perms = new JsonDatabase({ databasePath:"./databases/myJsonPerms.json" });
-
+const db = require("quick.db")
+const config = require("../config.json")
 module.exports = {
-    name: "limpar", 
+    
+    name: "stock", // Coloque o nome do comando do arquivo
     run: async(client, message, args) => {
-      if(message.author.id !== `${perms.get(`${message.author.id}_id`)}`) return message.reply(`⚡ | Você não está na lista de pessoas!`)
-      setTimeout(() => message.channel.bulkDelete(100).catch(err => {
-        return message.channel.send(`⚡ | Ocorreu algum erro!`);
-      }), 400)
-      setTimeout(() => message.delete().then(msg => {
-        return message.channel.send(`⚡ | Mensagens deletadas!`)
-      }), 300)
-   }
+        const embederro = new Discord.MessageEmbed()
+        .setTitle(`Erro - Permissão`)
+        .setDescription(`Você não tem permissão para isto!`)
+        .setColor(config.cor)
+        .setFooter(`${config.nomebot} - Todos os direitos reservados.`)
+        if (!message.member.permissions.has("ADMINISTRATOR")) return message.channel.send({ embeds: [embederro] }).then(msg => {
+                    setTimeout(() => msg.delete(), 5000)
+                })
+ message.channel.bulkDelete(10)
+
+    }
 }

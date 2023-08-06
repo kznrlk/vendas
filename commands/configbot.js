@@ -2,150 +2,140 @@ const Discord = require("discord.js")
 const { JsonDatabase, } = require("wio.db");
 const config = new JsonDatabase({ databasePath:"./config.json" });
 const perms = new JsonDatabase({ databasePath:"./databases/myJsonPerms.json" });
+const db = new JsonDatabase({ databasePath:"./databases/myJsonBotConfig.json" });
+const dbB = new JsonDatabase({ databasePath:"./databases/myJsonBotConfig.json" });
 
 module.exports = {
     name: "configbot", 
     run: async(client, message, args) => {
-      if(message.author.id !== `${perms.get(`${message.author.id}_id`)}`) return message.reply(`⚡ | Você não está na lista de pessoas!`).then(msg => setTimeout(() => msg.delete().catch(err => console.log(err)), 5000));
+        
+const embederro = new Discord.MessageEmbed()
+        .setTitle(`Erro - Permissão`)
+        .setDescription(`Você não tem permissão para isto!`)
+        .setColor(config.cor)
+        .setFooter(`${config.nomebot} - Todos os direitos reservados.`)
+                if (!message.member.permissions.has("ADMINISTRATOR")) return message.channel.send({ embeds: [embederro] })
+       
+      const chave = args[0];
       const row = new Discord.MessageActionRow()
         .addComponents(
           new Discord.MessageButton()
-            .setCustomId('nomeconfig')
-            .setEmoji('⚡')
-            .setLabel('Nome')
+            .setCustomId('logsvendas')
+            .setEmoji('<:infor:1015773390646284378>')
+            .setLabel('Nome Bot')
             .setStyle('SECONDARY'),
         )
         .addComponents(
           new Discord.MessageButton()
-            .setCustomId('corconfig')
-            .setEmoji('⚡')
-            .setLabel('Cor')
+            .setCustomId('minchave')
+            .setEmoji('<:infor:1015773390646284378>')
+            .setLabel('Cargo Comprador')
             .setStyle('SECONDARY'),
         )
         .addComponents(
           new Discord.MessageButton()
-            .setCustomId('avatarconfig')
-            .setEmoji('⚡')
-            .setLabel('Avatar')
+            .setCustomId('tokendomp')
+            .setEmoji('<:infor:1015773390646284378>')
+            .setLabel('Token MP')
             .setStyle('SECONDARY'),
         )
         .addComponents(
           new Discord.MessageButton()
-            .setCustomId('cargoconfig')
-            .setEmoji('⚡')
-            .setLabel('Cargo')
+            .setCustomId('pctchave')
+            .setEmoji('<:infor:1015773390646284378>')
+            .setLabel('Cor Embed')
+            .setStyle('SECONDARY'),
+        )
+        .addComponents(
+          new Discord.MessageButton()
+            .setCustomId('relchave')
+            .setEmoji('<:next:1015727899082510498>')
+            .setLabel('Atualizar')
             .setStyle('SECONDARY'),
         );
         
-        const embed = await message.reply({ embeds: [new Discord.MessageEmbed()
-          .setTitle(`${config.get(`title`)} | Configuração do bot`)
+        const msg = await message.reply({ embeds: [new Discord.MessageEmbed()
+          .setTitle(`Bot Store | Configurando o bot`)
           .setDescription(`
-🤖 | Nome: **${config.get(`title`)}**
-🎨 | Cor: ${config.get(`color`)}
-🖼️ | Avatar: [Clique aqui](${config.get(`thumbnail`)})
-🎄 | Cargo Cliente: <@&${config.get(`role`)}>`)
-          .setColor(config.get(`color`))], components: [row]})
-        const interação = embed.createMessageComponentCollector({ componentType: "BUTTON", });
-          interação.on("collect", async (interaction) => {
-           if (message.author.id != interaction.user.id) {
-             return;
-           }
-
-           if (interaction.customId === "nomeconfig") {
+🚀 | **Nome Bot:** **${db.get(`nomebot`)}**
+🚀 | **Cargo Cliente:** <@&${db.get(`cargo`)}>
+🚀 | **Token MP:** || ${db.get(`acesstoken`)} ||
+🚀 | **Cor:** ${db.get(`cor`)}`)
+          .setThumbnail(client.user.displayAvatarURL())
+          .setColor(config.cor)], components: [row]})
+        const interação = msg.createMessageComponentCollector({ componentType: "BUTTON", })
+        interação.on("collect", async (interaction) => {
+         if (message.author.id != interaction.user.id) {
+          return;
+         }
+                
+         if (interaction.customId === "delchave") {
+           msg.delete()
+           msg.channel.send("✅ | Excluido!")
+           db.delete(`${chave}`)
+         }
+         if (interaction.customId === "logsvendas") {
              interaction.deferUpdate();
-             message.channel.send("❓ | Qual o novo nome?").then(msg => {
-              const filter = m => m.author.id === interaction.user.id;
-              const collector = msg.channel.createMessageCollector({ filter, max: 1 });
-               collector.on("collect", title => {
-                 title.delete()
-                 client.user.setUsername(title.content);
-                 const newt = title.content
-                 config.set(`title`, newt)
-                 msg.edit("⚡ | Alterado!")
-                            
-                 const embednew = new Discord.MessageEmbed()
-                   .setTitle(`${config.get(`title`)} | Configuração do bot`)
-                   .setDescription(`
-🤖 | Nome: **${config.get(`title`)}**
-🎨 | Cor: ${config.get(`color`)}
-🖼️ | Avatar: [Clique aqui](${config.get(`thumbnail`)})
-🎄 | Cargo Cliente: <@&${config.get(`role`)}>`)
-                   .setColor(config.get(`color`))
-                 embed.edit({ embeds: [embednew] })
-                 })
-               })
-             }
-           if (interaction.customId === "corconfig") {
+             msg.channel.send("❓ | Qual o nome do bot:").then(msg => {
+               const filter = m => m.author.id === interaction.user.id;
+               const collector = msg.channel.createMessageCollector({ filter, max: 1 });
+               collector.on("collect", message => {
+                 message.delete()
+                 db.set(`nomebot`, `${message.content}`)
+                 msg.edit("✅ | Alterado!")
+             })
+           })
+         }
+         if (interaction.customId === "tokendomp") {
+          interaction.deferUpdate();
+          msg.channel.send("❓ | Qual o token do MP ?").then(msg => {
+            const filter = m => m.author.id === interaction.user.id;
+            const collector = msg.channel.createMessageCollector({ filter, max: 1 });
+            collector.on("collect", message => {
+              message.delete()
+              db.set(`acesstoken`, `${message.content}`)
+              msg.edit("✅ | Token Alterado!")
+          })
+        })
+      }
+         if (interaction.customId === "minchave") {
              interaction.deferUpdate();
-             message.channel.send("❓ | Qual a nova cor em hex?").then(msg => {
-              const filter = m => m.author.id === interaction.user.id;
-              const collector = msg.channel.createMessageCollector({ filter, max: 1 });
-               collector.on("collect", color => {
-                 color.delete()
-                 const newt = color.content
-                 config.set(`color`, newt)
-                 msg.edit("⚡ | Alterado!")
-                            
-                 const embednew = new Discord.MessageEmbed()
-                   .setTitle(`${config.get(`title`)} | Configuração do bot`)
-                   .setDescription(`
-🤖 | Nome: **${config.get(`title`)}**
-🎨 | Cor: ${config.get(`color`)}
-🖼️ | Avatar: [Clique aqui](${config.get(`thumbnail`)})
-🎄 | Cargo Cliente: <@&${config.get(`role`)}>`)
-                   .setColor(config.get(`color`))
-                 embed.edit({ embeds: [embednew] })
-                 })
-               })
-             }
-           if (interaction.customId === "avatarconfig") {
+             msg.channel.send("❓ | Qual o cargo de cliente? (mande o id)").then(msg => {
+               const filter = m => m.author.id === interaction.user.id;
+               const collector = msg.channel.createMessageCollector({ filter, max: 1 });
+               collector.on("collect", message => {
+                 message.delete()
+                 db.set(`cargo`, `${message.content.replace(",", ".")}`)
+                 msg.edit("✅ | Alterado!")
+             })
+           })
+         }
+         if (interaction.customId === 'pctchave') {
              interaction.deferUpdate();
-             message.channel.send("❓ | Qual o novo avatar do bot?").then(msg => {
-              const filter = m => m.author.id === interaction.user.id;
-              const collector = msg.channel.createMessageCollector({ filter, max: 1 });
-               collector.on("collect", thumbnail => {
-                 thumbnail.delete()
-                 thumbnail.attachments.forEach(attachment => {
-                 const newt = attachment.proxyURL;
-                 client.user.setAvatar(newt);
-                 config.set(`thumbnail`, newt)});
-                 msg.edit("⚡ | Alterado!")
-                            
-                 const embednew = new Discord.MessageEmbed()
-                   .setTitle(`${config.get(`title`)} | Configuração do bot`)
-                   .setDescription(`
-🤖 | Nome: **${config.get(`title`)}**
-🎨 | Cor: ${config.get(`color`)}
-🖼️ | Avatar: [Clique aqui](${config.get(`thumbnail`)})
-🎄 | Cargo Cliente: <@&${config.get(`role`)}>`)
-                   .setColor(config.get(`color`))
-                 embed.edit({ embeds: [embednew] })
-                 })
-               })
-             }
-           if (interaction.customId === "cargoconfig") {
-             interaction.deferUpdate();
-             message.channel.send("❓ | Qual o novo cargo em id?").then(msg => {
-              const filter = m => m.author.id === interaction.user.id;
-              const collector = msg.channel.createMessageCollector({ filter, max: 1 });
-                collector.on("collect", role => {
-                 role.delete()
-                 const newt = role.content
-                 config.set(`role`, newt)
-                 msg.edit("⚡ | Alterado!")
-                            
-                 const embednew = new Discord.MessageEmbed()
-                   .setTitle(`${config.get(`title`)} | Configuração do bot`)
-                   .setDescription(`
-🤖 | Nome: **${config.get(`title`)}**
-🎨 | Cor: ${config.get(`color`)}
-🖼️ | Avatar: [Clique aqui](${config.get(`thumbnail`)})
-🎄 | Cargo Cliente: <@&${config.get(`role`)}>`)
-                   .setColor(config.get(`color`))
-                 embed.edit({ embeds: [embednew] })
-                 })
-               })
+             msg.channel.send("❓ | Qual a cor da embed? (ex: #00ff00)").then(msg => {
+               const filter = m => m.author.id === interaction.user.id;
+               const collector = msg.channel.createMessageCollector({ filter, max: 1 });
+               collector.on("collect", message => {
+                 message.delete()
+                 db.set(`cor`, `${message.content}`)
+                 msg.edit("✅ | Alterado!")
+             })
+           })
+         }
+         if (interaction.customId === 'relchave') {
+           interaction.deferUpdate();
+           const embed = new Discord.MessageEmbed()
+          .setTitle(`Bot Store | Configurando o bot`)
+             .setDescription(`
+🚀 | **Nome Bot:** **${db.get(`nomebot`)}**
+🚀 | **Cargo Cliente:** <@&${db.get(`cargo`)}>
+🚀 | **Token MP:** || ${db.get(`acesstoken`)} ||
+🚀 | **Cor:** ${db.get(`cor`)}`)
+             .setThumbnail(client.user.displayAvatarURL())
+             .setColor(config.cor)
+           msg.edit({ embeds: [embed] })
+           message.channel.send("✅ | Atualizado!")
              }
            })
          }
-       };
+       }

@@ -1,18 +1,44 @@
 const Discord = require("discord.js")
+const db = require("quick.db")
+const config = require("../config.json")
+const axios = require("axios")
 const { JsonDatabase, } = require("wio.db");
-const db2 = new JsonDatabase({ databasePath:"./databases/myJsonDatabase.json" });
-const config = new JsonDatabase({ databasePath:"./config.json" });
-const perms = new JsonDatabase({ databasePath:"./databases/myJsonPerms.json" });
-
+const dbB = new JsonDatabase({ databasePath:"./databases/myJsonBotConfig.json" });
 module.exports = {
-    name: "status", 
+    
+    name: "stock", // Coloque o nome do comando do arquivo
     run: async(client, message, args) => {
-      if(message.author.id !== `${perms.get(`${message.author.id}_id`)}`) return message.reply(`⚡ | Você não está na lista de pessoas!`).then(msg => setTimeout(() => msg.delete().catch(err => console.log(err)), 5000));
-      const embed = new Discord.MessageEmbed()
-        .setTitle(`${config.get(`title`)} | Status de vendas`)
-        .addField(`⚡ | Produtos vendidos:`, `${db2.get("pedidostotal") || "0"} vendas realizadas.`)
-        .addField(`⚡ | Dinheiro arrecadado:`, `R$ ${db2.get("gastostotal") || "0"} Reais`)
-        .setColor(config.get(`color`))
-      message.reply({embeds: [embed]})
+        message.delete()
+        const embederro = new Discord.MessageEmbed()
+        .setTitle(`Erro - Permissão`)
+        .setDescription(`Você não tem permissão para isto!`)
+        .setColor(config.cor)
+        .setFooter(`${config.nomebot} - Todos os direitos reservados.`)
+            if (!message.member.permissions.has("ADMINISTRATOR")) return message.channel.send({ embeds: [embederro] }).then(msg => {
+                    setTimeout(() => msg.delete(), 5000)
+                })
+                axios.get(`https://api.mercadolibre.com/collections/notifications/${args[0]}`, {
+                                                                    headers: {
+                                                                        'Authorization': `Bearer ${dbB.get('acesstoken')}`
+                                                                    }
+                                                                }).then(async (doc) => {
+                                                                    console.log(doc)
+                                                                    if(doc.data.collection.status === "approved") {
+                                                                      var msg = "Aprovado";
+                                                                    } else {
+                                                                       var msg = "Cancelado/Reembolsado";
+                                                                    }
+    const status = new Discord.MessageEmbed()
+    .setTitle(`Status de Pagamento`)           
+    .setDescription(`**📌 | Status:**\n${msg}\n\n**💵 | Preço:** \nR$${doc.data.collection.transaction_amount}\n\n**🌎 | Id da compra:**\n${args[0]}`)
+    .setColor(config.cor)
+    .setImage(config.fotoembed)
+
+message.channel.send({ embeds: [status] })
+                                                                }).catch(e => {
+                                                                    console.log(e)
+                                                                    message.channel.send("🚫 | Aconteceu algum erro !\n**Tem certeza que colocou o id correto?**\n**Erro:**\nError: Request failed with status code 404")
+                                                                })
+
     }
 }

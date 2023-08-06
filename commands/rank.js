@@ -1,30 +1,72 @@
-const Discord = require("discord.js")
-const { JsonDatabase, } = require("wio.db");
-const wio = require("wio.db");
-const { embn, embp, embq } = require("../index.js")
-const config = new JsonDatabase({ databasePath:"./config.json" });
-const db = new JsonDatabase({ databasePath:"./databases/myJsonDatabase.json" });
+const Discord = require('discord.js');
+const db = require('quick.db');
+var ms = require('milliseconds');
 
 module.exports = {
-  name: "rank",
-  description: "Veja o ranking de usuários no servidor",
-    run: async(client, message, args) => {
-      var grana = db.all().filter(i => i.data.gastosaprovados).sort((a, b) => b.data.gastosaprovados - a.data.gastosaprovados);
-      var texto = ""
-      if(grana.length < 5) return embn(`Você **não tem** clientes o suficiente, atualmente temos **apenas ${grana.length}/5** clientes.`, message)
-      
-      for (var i in grana) {
-        let pos = grana.indexOf(grana[i]) + 1
-        let emoji = `<:dinheiro:1049057576857378887>`
-        let user = client.users.cache.get(grana[i].ID) ? client.users.cache.get(grana[i].ID).id : "Desconhecido#0000"
-        texto += `${pos}º | <@${user}> - R$ ${grana[i].data.gastosaprovados} ${emoji}\n`
-      }
-        
-      const rank = new Discord.MessageEmbed()
-        .setTitle(`${client.user.username} | Ranking de Clientes`)
-        .setDescription(texto.split("\n11º ")[0])
-        .setColor(config.get(`color`))
-        .setThumbnail(client.user.displayAvatarURL())
-      message.reply({ embeds: [rank] });
-  }
-}
+    name: 'rankcall',
+    aliases: ['rk', 'top', 'leaderboard'],
+
+    run: async (client, message, args) => {
+
+        async function rankTempocall(pagina, per_pagina) {
+
+            const resp = await db.all().filter(data => data.ID.startsWith('gastostotal')).sort((a, b) => b.data - a.data);
+
+            var pagina = pagina || 1,
+                per_pagina = per_pagina || 5,
+                offset = (pagina - 1) * per_pagina,
+
+                paginatedItems = resp.slice(offset).slice(0, per_pagina),
+                total_pagina = Math.ceil(resp.length / per_pagina);
+
+            let id = resp.slice('gastostotal')
+
+            var rankMensagem = ""
+            for (var i in paginatedItems) {
+
+                if (paginatedItems[i].data == undefined || paginatedItems[i].data == "") {
+
+                } else {
+                    let tempo = paginatedItems[i].data
+                    let totalSeconds = (ms.seconds(tempo) / 1000);
+                    let hours = Math.floor(totalSeconds / 3600);
+                    totalSeconds %= 86400;
+                    totalSeconds %= 3600;
+                    let minutes = Math.floor(totalSeconds / 60);
+                    let seconds = Math.floor(totalSeconds % 60);
+
+                    tempo = "**" + hours + '** hora(s), **' + minutes + '** minuto(s) e **' + seconds + '** segundos';
+
+                    let nick = paginatedItems[i].ID.replace("gastostotal", "")
+                    if (message.guild.members.cache.get(nick)) {
+                        nick = message.guild.members.cache.get(nick)
+                        rankMensagem += `**${nick.user.tag}**\n${gastostotal}\n\n`;
+                    } else {
+                    }
+                }
+            }
+
+            let final = {
+                pagina: pagina,
+                per_pagina: per_pagina,
+                pre_pagina: pagina - 1 ? pagina - 1 : null,
+                next_page: (total_pagina > pagina) ? pagina + 1 : null,
+                total: resp.length,
+                total_pagina: total_pagina,
+                data: paginatedItems,
+                message: rankMensagem
+            };
+
+            if (rankMensagem == undefined || rankMensagem == "") rankMensagem = '**Nenhum usuário está no top 5!**';
+
+            const topembed = new Discord.MessageEmbed()
+                .setColor(client.cor)
+                .setAuthor({ name: message.guild.name + " | Compras", iconURL: message.guild.iconURL({ dynamic: true }) })
+                .addField('⭐ | Rank top 5', rankMensagem)
+                .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+                .setTimestamp()
+            return message.reply({ embeds: [topembed] })
+        }
+        rankTempocall(1, 5)
+    },
+};
