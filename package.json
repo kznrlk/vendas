@@ -1,26 +1,18 @@
 {
-  "name": "project-1.1",
+  "name": "ticket-store",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "author": "Pinguim",
   "license": "ISC",
   "dependencies": {
-    "@discordjs/voice": "^0.14.0",
-    "axios": "^1.2.2",
-    "better-sqlite3": "^8.0.1",
-    "canvacord": "^5.4.8",
-    "canvas": "^2.11.0",
-    "discord-html-transcripts": "^3.1.2",
-    "discord-logs": "^2.2.1",
-    "discord.js": "^14.7.1",
-    "glob": "^8.0.3",
-    "moment": "^2.29.4",
-    "mongoose": "^6.9.0",
-    "quick.db": "^9.0.8"
+    "ascii-table": "^0.0.9",
+    "discord-html-transcripts": "^2.5.8",
+    "discord.js": "^13.8.1",
+    "fs": "^0.0.1-security",
+    "install": "^0.13.0"
   }
 }
